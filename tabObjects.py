@@ -57,6 +57,8 @@ class FalconTabBase(object):
 		self.hListCtrl.Bind(wx.EVT_LIST_END_LABEL_EDIT,self.OnLabelEditEnd)
 		self.hListCtrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED,self.EnterItem)
 		self.hListCtrl.Bind(wx.EVT_KEY_DOWN,self.KeyDown)
+		self.hImageList=wx.ImageList(32,32)
+		self.hListCtrl.AssignImageList(self.hImageList,wx.IMAGE_LIST_NORMAL)
 
 	def GetListColumns(self):
 		return self.columns
@@ -107,11 +109,18 @@ class FalconTabBase(object):
 			self.hListCtrl.InsertColumn(i,elem,format=format,width=wx.LIST_AUTOSIZE)
 			i+=1
 
-	def UpdateListContent(self,content):
+	def UpdateListContent(self,content,images=None):
 		"""リストコントロールの中身を更新する。カラム設定は含まない。"""
 		self.log.debug("Updating list control...")
 		self._cancelBackgroundTasks()
 		t=misc.Timer()
+		self.hImageList.RemoveAll()
+		if images:
+			for elem in images:
+				self.hImageList.Add(elem)
+			#end for
+		#end if
+
 		for elem in content:
 			self.hListCtrl.Append(elem)
 		#end 追加
@@ -167,7 +176,7 @@ class MainListTab(FalconTabBase):
 				self.hListCtrl.SetColumnWidth(i,w)
 		#end 違う種類のリストかどうか
 		self.listObject=lst
-		self.UpdateListContent(self.listObject.GetItems())
+		self.UpdateListContent(self.listObject.GetItems(),self.listObject.GetIcons())
 
 	def _cancelBackgroundTasks(self):
 		"""フォルダ容量計算など、バックグラウンドで走っていて、ファイルリストが更新されるといらなくなるようなものをキャンセルする。"""

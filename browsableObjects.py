@@ -4,6 +4,8 @@
 #Copyright (C) 2019-2020 yamahubuki <itiro.ishino@gmail.com>
 #Note: All comments except these top lines will be written in Japanese.
 
+import wx
+
 import os
 import win32file
 import logging
@@ -51,9 +53,9 @@ class FalconBrowsableBase():
 
 class File(FalconBrowsableBase):
 	"""ファイルを表す。このオブジェクトは情報を保持するだけで、指し示すファイルにアクセスすることはない。フルパスは計算可能なのだが、二重に値を生成したくはないので、あえて値を渡すようにしている。"""
-	__slots__=["basename","creationDate","directory","fullpath","modDate","shortName","size","typeString"]
+	__slots__=["basename","creationDate","directory","fullpath","modDate","shortName","size","typeString","wxIcon"]
 
-	def Initialize(self,directory="", basename="", fullpath="", size=-1, modDate=None, attributes=-1, typeString="",creationDate=None,shortName=""):
+	def Initialize(self,directory="", basename="", fullpath="", size=-1, modDate=None, attributes=-1, typeString="",creationDate=None,shortName="",hicon=0):
 		"""必要な情報をセットする"""
 		self.directory=directory
 		self.basename=basename
@@ -65,10 +67,15 @@ class File(FalconBrowsableBase):
 		self.GetAttributesString()
 		self.typeString=typeString
 		self.shortName=shortName
+		self.wxIcon=wx.Icon()
+		self.wxIcon.CreateFromHICON(hicon)
 
 	def GetListTuple(self):
 		"""表示に必要なタプルを返す。"""
 		return (self.basename, misc.ConvertBytesTo(self.size,misc.UNIT_AUTO,True), misc.PTime2string(self.modDate), self.attributesString, self.typeString)
+
+	def GetWxIcon(self):
+		return self.wxIcon
 
 	def GetNewAttributes(self,checks):
 		"""属性変更の時に使う。チェック状態のリストを受け取って、新しい属性値を帰す。変更の必要がなければ、-1を帰す。"""
