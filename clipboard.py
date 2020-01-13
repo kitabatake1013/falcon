@@ -35,6 +35,7 @@ class ClipboardFile(object):
 		with clipboardHelper.Clipboard() as c:
 			lst=c.get_dropped_files()
 		#end ファイルリスト取る
+		return lst
 
 	def GetOperation(self):
 		with clipboardHelper.Clipboard() as c:
