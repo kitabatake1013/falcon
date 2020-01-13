@@ -68,7 +68,15 @@ def Execute(op):
 	log.debug("Size: %d bbytes" % total)
 	log.debug("Start copying...")
 	for elem in f:
-		log.debug("Copying %s to %s" % (elem.path, elem.destpath))
+		try:
+			if os.path.isfile(elem):
+				win32file.CopyFileEx(elem.path,elem.destpath,None,None,False,win32file.COPY_FILE_FAIL_IF_EXISTS)
+			else:
+				win32file.CreateDirectory(elem.destpath)
+		except win32file.error as err:
+			appendRetry(op.output,elem)
+			continue
+		#end except
 		op.output["succeeded"]+=1
 	#end 削除処理
 	if len(op.output["retry"]["target"])>0:
