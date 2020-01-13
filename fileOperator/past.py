@@ -69,10 +69,10 @@ def Execute(op):
 	log.debug("Start copying...")
 	for elem in f:
 		try:
-			if os.path.isfile(elem):
+			if elem.isfile:
 				win32file.CopyFileEx(elem.path,elem.destpath,None,None,False,win32file.COPY_FILE_FAIL_IF_EXISTS)
 			else:
-				win32file.CreateDirectory(elem.destpath)
+				win32file.CreateDirectory(elem.destpath,None)
 		except win32file.error as err:
 			appendRetry(op.output,elem)
 			continue
