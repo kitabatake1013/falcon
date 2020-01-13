@@ -520,6 +520,7 @@ class MainListTab(FalconTabBase):
 		globalVars.app.say(_("コピー"))
 		c=clipboard.ClipboardFile()
 		c.SetFileList(self.GetSelectedItems().GetItemPaths())
+		c.SetOperation(clipboard.COPY)
 		c.SendToClipboard()
 
 	def Cut(self):
@@ -532,8 +533,18 @@ class MainListTab(FalconTabBase):
 
 	def Past(self):
 		c=clipboard.ClipboardFile()
-		lst=c.GetFileList()
-		dialog("test",str(lst))
+		target=c.GetFileList()
+		op=c.GetOperation()
+		op_str=_("コピー") if op==clipboard.COPY else _("移動")
+		if len(target)==0: return
+		if len(target)==1:
+			msg=_("%(file)s\nこのファイルを、 %(dest)s に%(op)sしますか？") % {'file': target[0], 'dest': self.listObject.rootDirectory, 'op': op_str}
+		else:
+			msg=_("選択中の項目%(num)d件を、 %(dest)s に%(op)sしますか？") % {'num': len(target), 'dest': self.listObject.rootDirectory, 'op': op_str}
+		#end メッセージどっちにするか
+		dlg=wx.MessageDialog(None,msg,_("%(op)sの確認") % {'op': op_str}, wx.YES_NO|wx.ICON_QUESTION)
+		if dlg.ShowModal()==wx.ID_NO: return
+
 
 	def FullpathCopy(self):
 		if not self.IsItemSelected(): return

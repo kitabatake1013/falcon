@@ -24,9 +24,6 @@ class ClipboardFile(object):
 		#end for
 		self.byte.append(0)
 		self.byte.append(0)
-		f=open("b.bin","wb")
-		f.write(self.byte)
-		f.close()
 
 	def SetOperation(self,op):
 		self.operation=op
@@ -40,8 +37,10 @@ class ClipboardFile(object):
 	def GetOperation(self):
 		with clipboardHelper.Clipboard() as c:
 			fmt=c.register_format("Preferred DropEffect")
-			op=struct.unpack('i',c.get_data(fmt))[0]
+			buf=c.get_data(fmt)
+			op=struct.unpack('i',buf)[0]
 		#end with
+		return op
 	#end getOperation
 
 	def SendToClipboard(self):
