@@ -108,11 +108,22 @@ def disableWindowStyleFlag(hwnd,flag):
 	win32api.SetWindowLong(hwnd,-16,value)
 
 def IteratePaths(path):
-	"""FindFirstFile 系を使う"""
+	"""FindFirstFile 系を使う。"""
 	for elem in win32file.FindFilesIterator(path+"\\*"):
 		if elem[8]=="." or elem[8]=="..": continue
 		if elem[0]&win32file.FILE_ATTRIBUTE_DIRECTORY: 
-			yield from IteratePaths2(os.path.join(path,elem[8]))
+			yield from IteratePaths(os.path.join(path,elem[8]))
+		#end ディレクトリ
+		yield os.path.join(path,elem[8])
+
+def IteratePaths_dirFirst(path):
+	"""FindFirstFile 系を使う。ファイルを内包するフォルダがあったとき、フォルダがリストの上に来る。"""
+	for elem in win32file.FindFilesIterator(path+"\\*"):
+		if elem[8]=="." or elem[8]=="..": continue
+		if elem[0]&win32file.FILE_ATTRIBUTE_DIRECTORY: 
+			yield os.path.join(path,elem[8])
+			yield from IteratePaths_dirFirst(os.path.join(path,elem[8]))
+			continue
 		#end ディレクトリ
 		yield os.path.join(path,elem[8])
 

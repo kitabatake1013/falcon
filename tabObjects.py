@@ -544,7 +544,13 @@ class MainListTab(FalconTabBase):
 		#end メッセージどっちにするか
 		dlg=wx.MessageDialog(None,msg,_("%(op)sの確認") % {'op': op_str}, wx.YES_NO|wx.ICON_QUESTION)
 		if dlg.ShowModal()==wx.ID_NO: return
-
+		inst={"operation": "past", "target": target, "to": self.listObject.rootDirectory, 'copy_move_flag': op}
+		op=fileOperator.FileOperator(inst)
+		ret=op.Execute()
+		if op.CheckSucceeded()==0:
+			dialog(_("エラー"),_("%(op)sに失敗しました。" % {'op': op_str}))
+		#end failure
+	#end past
 
 	def FullpathCopy(self):
 		if not self.IsItemSelected(): return

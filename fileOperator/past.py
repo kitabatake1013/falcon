@@ -10,7 +10,7 @@ import misc
 
 from . import helper
 
-VERB="copy"
+VERB="past"
 log=logging.getLogger("falcon.%s" % VERB)
 
 class Element(object):
@@ -47,11 +47,11 @@ def Execute(op):
 			continue
 		#end ベースパスが合わない
 		if os.path.isfile(elem):
-			lst.append(Element(elem),basepath,destpath)
+			lst.append(Element(elem,basepath,destpath))
 		else:
-			lst.append(Element(elem),basepath,destpath)#イテレーションの最初に親フォルダ追加
-			for elem2 in misc.IteratePaths(elem):
-				lst.append(Element(elem2),basepath,destpath)
+			lst.append(Element(elem,basepath,destpath))#イテレーションの最初に親フォルダ追加
+			for elem2 in misc.IteratePaths_dirFirst(elem):
+				lst.append(Element(elem2,basepath,destpath))
 			#end フォルダからファイルリスト
 		#end フォルダだった
 	#end ファイルリスト作るループ
