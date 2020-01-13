@@ -530,6 +530,9 @@ class MainListTab(FalconTabBase):
 		c.SetFileList(self.GetSelectedItems().GetItemPaths())
 		c.SendToClipboard()
 
+	def Past(self):
+		dialog("test","past")
+
 	def FullpathCopy(self):
 		if not self.IsItemSelected(): return
 		t=self.GetSelectedItems().GetItemPaths()
