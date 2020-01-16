@@ -48,17 +48,18 @@ def Execute(op):
 	lst=[]
 	for elem in f:
 		if not basepath in elem:
-			debug.log("Umpatched base path, skipping %s" % elem)
+			debug.log("Ummatched base path, skipping %s" % elem)
 			continue
 		#end ベースパスが合わない
 		if os.path.isfile(elem):
 			lst.append(Element(elem,basepath,destpath))
 		else:
-			lst.append(Element(elem,basepath,destpath))#イテレーションの最初に親フォルダ追加
-			for elem2 in misc.IteratePaths_dirFirst(elem):
-				lst.append(Element(elem2,basepath,destpath))
-			#end フォルダからファイルリスト
-			if copy_move_flag==MOVE: lst.append(Element(elem,None,None))#フォルダ削除用のエントリ
+			e=Element(elem,basepath,destpath)
+			if os.path.isdir(e.destpath):
+				_processExistingFolder(op.output,elem)#フォルダがもうあれば、その時点で確認に入れる(中のフォルダを展開しない)
+			else:#まだないフォルダなので追加
+				_expandFolder(lst,elem,e,basepath,destpath)
+			#end フォルダを展開するかしないか
 		#end フォルダだった
 	#end ファイルリスト作るループ
 	#ファイルリスト作ったので、もともとの target に上書き
@@ -121,3 +122,15 @@ def ProcessError(output,elem,msg):
 	output["all_OK"]=False
 	output["failed"].append(failedElement.FailedElement(elem.destpath,(number,msg)))
 #end ProcessError
+
+def _processExistingFolder(output,elem):
+	"""指定したフォルダを、すでに存在するフォルダとして、 need_to_confirm に入れる。"""
+	output["need_to_confirm"].Append(confirmElement.ConfirmElement(elem,80,"このフォルダはすでに存在します。"))
+
+def _expandFolder(lst,path,e,basepath,destpath):
+	"""フォルダを展開して、指定されたリストに入れる。"""
+	lst.append(e)#イテレーションの最初に親フォルダ追加
+	for elem in misc.IteratePaths_dirFirst(path):
+		lst.append(Element(elem,basepath,destpath))
+	#end フォルダからファイルリスト
+#end _expandFolder
