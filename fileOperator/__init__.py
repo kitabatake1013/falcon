@@ -16,7 +16,8 @@ from simpleDialog import dialog
 import globalVars
 import misc
 
-from . import rename, changeAttribute, failedElement, mkdir,trash,shortcut,symbolicLink,hardLink,delete,past
+from . import rename, changeAttribute, mkdir,trash,shortcut,symbolicLink,hardLink,delete,past
+from . import failedElement, confirmElement
 
 """ファイルオペレーターのインスタンスを作って、辞書で支持を与えます。"""
 
@@ -31,6 +32,7 @@ class FileOperator(object):
 		self.log.debug("Created.")
 		self.output={}
 		self.output["succeeded"]=0#オペレーション成功した数
+		self.output["need_to_confirm"]=confirmElement.ConfirmationManager()#確認が必要な項目
 		self.output["finished"]=False#オペレーション終了したかどうか
 		self.output["failed"]=[]#失敗したファイル立ちの情報
 		self.output["retry"]={"files": []}#権限昇格して自動的にリトライするオペレーション
@@ -105,7 +107,7 @@ class FileOperator(object):
 		if op=="past":
 			retry=past.Execute(self)
 		#end hardLink
-		self.log.debug("success %s, retry %s, failure %s." % (self.output["succeeded"], retry, len(self.output["failed"])))
+		self.log.debug("success %s, retry %s, need to confirm %s, failure %s." % (self.output["succeeded"], retry, len(self.output["need_to_confirm"]), len(self.output["failed"])))
 		if not self.elevated and retry>0: self._elevate()#昇格してリトライ
 		if self.elevated: self._postElevation()#昇格した後の後処理
 		self.working=False

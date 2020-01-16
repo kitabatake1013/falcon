@@ -547,7 +547,7 @@ class MainListTab(FalconTabBase):
 		inst={"operation": "past", "target": target, "to": self.listObject.rootDirectory, 'copy_move_flag': op}
 		op=fileOperator.FileOperator(inst)
 		ret=op.Execute()
-		if op.CheckSucceeded()==0:
+		if op.CheckSucceeded()==0 and ret==0:
 			dialog(_("エラー"),_("%(op)sに失敗しました。" % {'op': op_str}))
 		#end failure
 	#end past

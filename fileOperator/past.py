@@ -6,10 +6,11 @@ import logging
 import os
 import re
 import win32file
+from . import confirmElement, failedElement, helper
 import misc
 from clipboard import COPY, MOVE
 
-from . import helper
+
 
 VERB="past"
 log=logging.getLogger("falcon.%s" % VERB)
@@ -86,7 +87,8 @@ def Execute(op):
 			else:
 				win32file.CreateDirectory(elem.destpath,None)
 		except win32file.error as err:
-			appendRetry(op.output,elem)
+			log.error("Cannot create %s (%s)" % (elem.destpath, str(err)))
+			ProcessError(op.output,elem,str(err))
 			continue
 		#end except
 		if copy_move_flag==MOVE:
@@ -104,18 +106,18 @@ def Execute(op):
 	#end リトライあるか
 	return retry
 
-def appendRetry(output,target):
+def ProcessError(output,elem,msg):
 	"""リトライするリストに追加する。"""
-	output["retry"]["target"].append(target)
-
-"""
-		try:
-			if os.path.isfile(elem):
-				win32file.CopyFileEx(elem)
-			else:
-				win32file.RemoveDirectory(elem)
-		except win32file.error as err:
-			appendRetry(op.output,elem)
-			continue
-		#end except
-"""
+	number=helper.GetErrorNumber(msg)
+	if helper.IsAccessDenied(number):#アクセス拒否なので、リトライするリストに追加する
+		output["retry"]["target"].append(target)
+		return
+	#end リトライ
+	#すでに存在するエラーだったら、確認扱いにする
+	if number==80 or number==183:
+		output["need_to_confirm"].Append(confirmElement.ConfirmElement(elem,number,msg))
+		return
+	#end 要確認
+	output["all_OK"]=False
+	output["failed"].append(failedElement.FailedElement(elem.destpath,(number,msg)))
+#end ProcessError
