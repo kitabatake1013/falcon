@@ -10,6 +10,12 @@ class ConfirmElement(object):
 		self.msg_str=msg_str
 		self.response=""
 
+	def SetResponse(self,res):
+		self.response=res
+
+	def GetResponse(self):
+		return self.response
+
 class ConfirmationManager(object):
 	def __init__(self):
 		self.confirmations=[]

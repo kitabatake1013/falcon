@@ -26,7 +26,7 @@ class Element(object):
 	#end __init__
 #end Element
 
-def Execute(op):
+def Execute(op,resume=False):
 	"""実行処理。リトライが必要になった項目数を返す。"""
 	retry=0
 	try:
@@ -35,14 +35,18 @@ def Execute(op):
 		log.error("Required key is not specified.")
 		return False
 	#end 処理刷るものなし
-	op.output["all_OK"]=True
-	op.output["retry"]["target"]=[]
-	op.output["percentage"]=0
 	copy_move_flag=op.instructions["copy_move_flag"]
-	op.output["copy_move_flag"]=copy_move_flag
-	#ベースパスを決定
-	basepath=os.path.dirname(f[0])
-	destpath=op.instructions['to']
+	if not resume:
+		op.output["all_OK"]=True
+		op.output["retry"]["target"]=[]
+		op.output["percentage"]=0
+		op.output["copy_move_flag"]=copy_move_flag
+		#ベースパスを決定
+		op.output["basepath"]=os.path.dirname(f[0])
+		op.output["destpath"]=op.instructions['to']
+	#end 初期化
+	basepath=op.output["basepath"]
+	destpath=op.output["destpath"]
 	log.debug("Base path: %s dest path: %s" % (basepath,destpath))
 	log.debug("Retrieving file list...")
 	lst=[]
@@ -105,6 +109,8 @@ def Execute(op):
 		op.output["retry"]["operation"]=VERB
 		retry=len(op.output["retry"]["target"])
 	#end リトライあるか
+	#終わった者はもう使わないので、ファイルリストは消してしまう
+	op.instructions["target"]=[]
 	return retry
 
 def ProcessError(output,elem,msg):

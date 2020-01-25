@@ -172,6 +172,10 @@ class FileOperator(object):
 		"""終了したファイルオペレーションに対して、処理失敗となった項目の情報を取得する。"""
 		return self.output["failed"]
 
+	def GetConfirmationCount(self):
+		"""確認待ちで停まっている項目の数を取得する。"""
+		return len(self.output["need_to_confirm"])
+
 	def pickle(self,name=""):
 		"""ファイルオペレーションの現在の状態を、テンポラリフォルダに保存する。保存したファイル名(完全なファイル名ではない)を帰す。これをそのまま unpickle に渡す。固められなかったらFalse。name に指定すると、強制的にその名前で書く。"""
 		temp=win32api.GetEnvironmentVariable("TEMP")
