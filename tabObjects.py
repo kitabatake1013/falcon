@@ -548,7 +548,16 @@ class MainListTab(FalconTabBase):
 		op=fileOperator.FileOperator(inst)
 		ret=op.Execute()
 		c=op.GetConfirmationCount()
-		print("%d confirmations" % c)
+		self.log.debug("%d confirmations" % c)
+		confs=op.GetConfirmationManager()
+		for elem in confs.Iterate():
+			elem.SetResponse("overwrite")
+		#end for
+		op.UpdateConfirmation()
+		op.Execute()
+
+
+
 		if op.CheckSucceeded()==0 and ret==0:
 			dialog(_("エラー"),_("%(op)sに失敗しました。" % {'op': op_str}))
 		#end failure

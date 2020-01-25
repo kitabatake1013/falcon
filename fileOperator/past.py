@@ -28,6 +28,7 @@ class Element(object):
 
 def Execute(op,resume=False):
 	"""実行処理。リトライが必要になった項目数を返す。"""
+	if resume: log.debug("Starting as resume mode...")
 	retry=0
 	try:
 		f=op.instructions["target"]
@@ -59,9 +60,9 @@ def Execute(op,resume=False):
 			lst.append(Element(elem,basepath,destpath))
 		else:
 			e=Element(elem,basepath,destpath)
-			if os.path.isdir(e.destpath):
+			if os.path.isdir(e.destpath) and not resume:
 				_processExistingFolder(op.output,elem)#フォルダがもうあれば、その時点で確認に入れる(中のフォルダを展開しない)
-			else:#まだないフォルダなので追加
+			else:#まだないか、確認済みなので追加
 				_expandFolder(lst,elem,e,basepath,destpath)
 			#end フォルダを展開するかしないか
 		#end フォルダだった
@@ -78,6 +79,7 @@ def Execute(op,resume=False):
 	op.output['current_bytes']=0
 	log.debug("Size: %d bbytes" % total)
 	log.debug("Start copying...")
+	overwrite=0 if resume else win32file.COPY_FILE_FAIL_IF_EXISTS
 	for elem in f:
 		if elem.destpath is None:#フォルダ削除用
 			try:
@@ -88,12 +90,13 @@ def Execute(op,resume=False):
 		#end フォルダ消す
 		try:
 			if elem.isfile:
-				win32file.CopyFileEx(elem.path,elem.destpath,None,None,False,win32file.COPY_FILE_FAIL_IF_EXISTS)
+				win32file.CopyFileEx(elem.path,elem.destpath,None,None,False,overwrite)
 			else:
+				if resume and os.path.isdir(elem.destpath): continue#再開している場合はエラーになる前に逃げる
 				win32file.CreateDirectory(elem.destpath,None)
 		except win32file.error as err:
 			log.error("Cannot create %s (%s)" % (elem.destpath, str(err)))
-			ProcessError(op.output,elem,str(err))
+			ProcessError(op.output,elem,str(err),resume)
 			continue
 		#end except
 		if copy_move_flag==MOVE:
@@ -113,7 +116,7 @@ def Execute(op,resume=False):
 	op.instructions["target"]=[]
 	return retry
 
-def ProcessError(output,elem,msg):
+def ProcessError(output,elem,msg,resume):
 	"""リトライするリストに追加する。"""
 	number=helper.GetErrorNumber(msg)
 	if helper.IsAccessDenied(number):#アクセス拒否なので、リトライするリストに追加する

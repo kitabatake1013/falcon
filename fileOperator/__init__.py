@@ -39,6 +39,7 @@ class FileOperator(object):
 		self.output["all_OK"]=False#全て成功ならTrueにする
 		self.started=False#スタートしたかどうか
 		self.instructions=None
+		self.resume=False#確認に応答した後のファイル処理では、これが True になっている。なので、エラーを無視したりとかする。処理に渡されたファイルは、問答無用で処理刷る(上書きするとかしないとかは、 confirmationManager が追加するかどうかのみに左右される)
 		if isinstance(instructions,str):
 			self.unpickle(instructions)
 			self.writeBack=instructions
@@ -105,7 +106,7 @@ class FileOperator(object):
 			retry=delete.Execute(self)
 		#end hardLink
 		if op=="past":
-			retry=past.Execute(self)
+			retry=past.Execute(self,resume=self.resume)
 		#end hardLink
 		self.log.debug("success %s, retry %s, need to confirm %s, failure %s." % (self.output["succeeded"], retry, len(self.output["need_to_confirm"]), len(self.output["failed"])))
 		if not self.elevated and retry>0: self._elevate()#昇格してリトライ
@@ -175,6 +176,16 @@ class FileOperator(object):
 	def GetConfirmationCount(self):
 		"""確認待ちで停まっている項目の数を取得する。"""
 		return len(self.output["need_to_confirm"])
+
+	def GetConfirmationManager(self):
+		"""確認項目を取得するのに使える confirmationManager の参照を返す。"""
+		return self.output["need_to_confirm"]
+
+	def UpdateConfirmation(self):
+		self.resume=True
+		for elem in self.output["need_to_confirm"].Iterate():
+			if elem.GetResponse()=="overwrite": self.instructions["target"].append(elem.elem)
+			self.output["need_to_confirm"].Take(elem)
 
 	def pickle(self,name=""):
 		"""ファイルオペレーションの現在の状態を、テンポラリフォルダに保存する。保存したファイル名(完全なファイル名ではない)を帰す。これをそのまま unpickle に渡す。固められなかったらFalse。name に指定すると、強制的にその名前で書く。"""

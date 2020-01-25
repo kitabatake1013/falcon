@@ -9,12 +9,16 @@ class ConfirmElement(object):
 		self.msg_number=msg_number
 		self.msg_str=msg_str
 		self.response=""
+		self.taken=False#ファイルオペレーションに回されたらTrue
 
 	def SetResponse(self,res):
 		self.response=res
 
 	def GetResponse(self):
 		return self.response
+
+	def __str__(self):
+		return "[%s] %s (%s)" % (self.msg_number,self.msg_str,self.elem)
 
 class ConfirmationManager(object):
 	def __init__(self):
@@ -37,3 +41,8 @@ class ConfirmationManager(object):
 			if ok:yield elem
 		#end for
 	#end IterateWithFilter
+
+	def Take(self,elem):
+		"""ファイルオペレーションに渡った要素を指定して、監視対象から削除する。"""
+		self.confirmations.remove(elem)
+
